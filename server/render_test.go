@@ -6,15 +6,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gobuffalo/packr"
 	"github.com/juju/errors"
 	"github.com/peer-calls/peer-calls/server"
 	"github.com/stretchr/testify/assert"
 )
 
 func getTemplates() server.Templates {
-	box := packr.NewBox("./templates")
-	return server.ParseTemplates(box)
+	return server.ParseTemplates("./templates")
 }
 
 func TestRender_redirect(t *testing.T) {

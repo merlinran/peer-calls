@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi"
-	"github.com/gobuffalo/packr"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -69,8 +68,10 @@ func NewMux(
 	tracks TracksManager,
 	prom PrometheusConfig,
 ) *Mux {
-	box := packr.NewBox("./templates")
-	templates := ParseTemplates(box)
+	templates := ParseTemplates("server/templates")
+	log := loggerFactory.GetLogger("mux")
+	log.Printf("templates: %v", templates)
+
 	renderer := NewRenderer(loggerFactory, templates, baseURL, version)
 
 	handler := chi.NewRouter()
@@ -100,8 +101,8 @@ func NewMux(
 	manifest := buildManifest(baseURL)
 	handler.Route(root, func(router chi.Router) {
 		router.Get("/", withGauge(prometheusHomeViewsTotal, renderer.Render(mux.routeIndex)))
-		router.Handle("/static/*", static(baseURL+"/static", packr.NewBox("../build")))
-		router.Handle("/res/*", static(baseURL+"/res", packr.NewBox("../res")))
+		router.Handle("/static/*", static(baseURL+"/static", "build"))
+		router.Handle("/res/*", static(baseURL+"/res", "res"))
 		router.Post("/call", withGauge(prometheusCallJoinTotal, mux.routeNewCall))
 		router.Get("/call/{callID}", withGauge(prometheusCallViewsTotal, renderer.Render(mux.routeCall)))
 		router.Get("/probes/liveness", func(w http.ResponseWriter, r *http.Request) {
@@ -161,10 +162,8 @@ func newWebSocketHandler(
 	}
 }
 
-func static(prefix string, box packr.Box) http.Handler {
-	fileServer := http.FileServer(http.FileSystem(box))
-
-	return http.StripPrefix(prefix, fileServer)
+func static(prefix string, path string) http.Handler {
+	return http.StripPrefix(prefix, http.FileServer(http.Dir(path)))
 }
 
 func (mux *Mux) routeNewCall(w http.ResponseWriter, r *http.Request) {

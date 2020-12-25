@@ -22,7 +22,7 @@
     "test:go": "go test ./...",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "js": "webpack --config webpack.prod.js --optimize-minimize",
+    "js": "webpack --config webpack.prod.js",
     "js:watch": "webpack --config webpack.dev.js --watch",
     "css": "node-sass ./src/sass/style.sass -o ./build/",
     "css:watch": "npm run css && node-sass --watch ./src/sass/style.sass -o ./build/",

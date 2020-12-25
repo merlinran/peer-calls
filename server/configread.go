@@ -35,7 +35,11 @@ func ReadConfigFiles(filenames []string, c *Config) (err error) {
 }
 
 func InitConfig(c *Config) {
-	c.BindPort = 3000
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		port = 3000
+	}
+	c.BindPort = port
 	c.Network.Type = NetworkTypeMesh
 	c.Store.Type = StoreTypeMemory
 	c.ICEServers = []ICEServer{{

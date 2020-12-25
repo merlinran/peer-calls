@@ -1,11 +1,10 @@
 package server
 
 import (
+	"fmt"
 	"html/template"
+	"path/filepath"
 	"strings"
-
-	"github.com/gobuffalo/packd"
-	"github.com/gobuffalo/packr"
 )
 
 type Templates map[string]*template.Template
@@ -16,27 +15,23 @@ func (t Templates) Get(name string) (tpl *template.Template, ok bool) {
 	return
 }
 
-func ParseTemplates(box packr.Box) Templates {
+func ParseTemplates(rootPath string) Templates {
 	templates := Templates{}
-
-	_ = box.Walk(func(filename string, file packd.File) error {
-		if !strings.HasSuffix(filename, ".html") {
-			return nil
+	partials, _ := filepath.Glob(fmt.Sprintf("%s/_*.html", rootPath))
+	all, _ := filepath.Glob(fmt.Sprintf("%s/*.html", rootPath))
+	fileWithPartials := make([]string, len(partials)+1)
+	copy(fileWithPartials[1:], partials)
+	for _, filename := range all {
+		fileWithPartials[0] = filename
+		basename := filepath.Base(filename)
+		if strings.HasPrefix(basename, "_") { // exclude partials
+			continue
 		}
-		t := template.New(filename)
-
-		base, err := box.FindString("_header.html")
+		t, err := template.ParseFiles(fileWithPartials...)
 		template.Must(t, err)
-		template.Must(t.Parse(base))
+		templates[basename] = t
 
-		body, err := box.FindString(filename)
-		template.Must(t, err)
-		template.Must(t.Parse(body))
-
-		templates[filename] = t
-
-		return nil
-	})
+	}
 
 	return templates
 }

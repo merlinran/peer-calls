@@ -2,6 +2,8 @@ module github.com/peer-calls/peer-calls
 
 go 1.14
 
+// +heroku goVersion go1.14
+
 require (
 	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/go-redis/redis/v7 v7.2.0

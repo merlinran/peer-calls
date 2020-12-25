@@ -132,8 +132,13 @@ func NewMux(
 			}
 			promhttp.Handler().ServeHTTP(w, r)
 		})
-
 		router.Mount("/ws", wsHandler)
+		router.NotFound(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+		})
+		router.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+		})
 	})
 
 	return mux
